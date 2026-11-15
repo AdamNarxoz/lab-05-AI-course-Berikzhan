@@ -34,7 +34,7 @@ the model do instead? Name one thing you would add to the harness, and what it w
 (extra model calls, tokens, time, or a new way to fail).
 
 q18 ask by how many percentage points CPI in Jambyl fell between 2022 and 2025.
-In layer 3 it finish as UNVERIFIED. Both CPI values come correctly from get_series, so lookup was fine. Mistake was in arithmetic: model calculated (16.1 - 10.6) / 100 and answered 0.55 pp. Percentage point change is just difference, 5.5, so model confused percentage points with percent. Grounding see that 0.55 is not in any tool output and send model back two times, but model never fix the expression and harness give up.
+In layer 3 it finish as UNVERIFIED. Both CPI values come correctly from get_series, so lookup was fine. Mistake was in arithmetic: model calculated (16.1 - 10.6) / 100 and answered 0.55 pp. Percentage point change is just difference 16.1 - 10.6 (CPI in 2022 minus CPI in 2025), so model confused percentage points with percent. Grounding see that 0.55 is not in any tool output and send model back once, but model repeat the same calculate. Layer 2 see the repeat and write “Stop calling tools”, model answer 0.55 again, and layer 3 mark it UNVERIFIED.
 
 I would add check on calculate call for pp questions. If expression divide or multiply by 100, harness reject it and tell model that percentage point change is difference of two rates. It cost one or two more model calls on pp questions, plus tokens and time.
 Also it add new way to fail: harness need to know question type, and this rule can block calculation which really need the 100.
@@ -46,7 +46,7 @@ indicator in one year". Would you ship the fixed workflow or the agent? Use the 
 number of model calls, the tokens and the time you measured in Part 1. Then say in one sentence
 what kind of question would make you choose the other one.
 
-I would choose fixed workflow. On 15 fixed-shape questions it got 13 correct and 0 wrong, when bare agent got 9 correct and 2 wrong. Workflow used 15 model calls instead of 26 and 3,852 tokens instead of 19,835 (around 5 times less). Time was 16 s instead of 47 s. When workflow fail, it give no answer, not wrong answer. Ranking is done by normal code (compare_regions and then first or last item), so model can not choose wrong end of list. For report which is published every month in same form, most important for me is cost and to never print wrong region. Only weakness I saw is old region names which model copy into JSON (q21, q22), and small alias table in code can fix it.
+I would choose fixed workflow. On 15 fixed-shape questions it got 13 correct and 0 wrong, when bare agent got 9 correct and 2 wrong. Workflow used 15 model calls instead of 26 and 3852 tokens instead of 19835 (around 5 times less). Time was 16.1 s instead of 47.3 s. When workflow fail, it give no answer, not wrong answer. Ranking is done by normal code (compare_regions and then first or last item), so model can not choose wrong end of list. For report which is published every month in same form, most important for me is cost and to never print wrong region. Only weakness I saw is old region names which model copy into JSON (q21, q22), and small alias table in code can fix it.
 
 I would choose agent for questions without fixed shape, for example how much indicator changed between two years, because it need several lookups and calculation.
 
